@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Ostmodern</string>
+    <string name="ends_on">Ends on:</string>
+    <string name="retry">RETRY</string>
+    <string name="error_loading">Impossible to load the content. Please retry.</string>
+    <string name="error_loading_episode">Impossible to load the episode.</string>
 </resources>

@@ -6,6 +6,9 @@ import android.os.Parcelable;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -15,7 +18,7 @@ import java.util.List;
 public class Episode implements Parcelable {
     @SerializedName("subtitle")
     @Expose
-    private Object subtitle;
+    private String subtitle;
     @SerializedName("uid")
     @Expose
     private String uid;
@@ -30,22 +33,22 @@ public class Episode implements Parcelable {
     private String publishOn;
     @SerializedName("talent_urls")
     @Expose
-    private List<Object> talentUrls;
+    private List<String> talentUrls;
     @SerializedName("schedule_url")
     @Expose
     private String scheduleUrl;
     @SerializedName("plan_urls")
     @Expose
-    private List<Object> planUrls;
+    private List<String> planUrls;
     @SerializedName("language_publish_on")
     @Expose
     private String languagePublishOn;
     @SerializedName("episode_number")
     @Expose
-    private Object episodeNumber;
+    private int episodeNumber;
     @SerializedName("language_modified_by")
     @Expose
-    private Object languageModifiedBy;
+    private String languageModifiedBy;
     @SerializedName("slug")
     @Expose
     private String slug;
@@ -57,7 +60,7 @@ public class Episode implements Parcelable {
     private Long versionNumber;
     @SerializedName("modified_by")
     @Expose
-    private Object modifiedBy;
+    private String modifiedBy;
     @SerializedName("language_ends_on")
     @Expose
     private String languageEndsOn;
@@ -78,10 +81,10 @@ public class Episode implements Parcelable {
     private String modified;
     @SerializedName("created_by")
     @Expose
-    private Object createdBy;
+    private String createdBy;
     @SerializedName("tag_urls")
     @Expose
-    private List<Object> tagUrls;
+    private List<String> tagUrls;
     @SerializedName("ends_on")
     @Expose
     private String endsOn;
@@ -93,7 +96,7 @@ public class Episode implements Parcelable {
     private String versionUrl;
     @SerializedName("parent_url")
     @Expose
-    private Object parentUrl;
+    private String parentUrl;
     @SerializedName("language_version_number")
     @Expose
     private Long languageVersionNumber;
@@ -104,23 +107,32 @@ public class Episode implements Parcelable {
     private ImageDetails imageDetails = null;
 
     protected Episode(Parcel in) {
+        subtitle = in.readString();
         uid = in.readString();
         scheduleUrls = in.createStringArrayList();
         imageUrls = in.createStringArrayList();
         publishOn = in.readString();
+        talentUrls = in.createStringArrayList();
         scheduleUrl = in.readString();
+        planUrls = in.createStringArrayList();
         languagePublishOn = in.readString();
+        episodeNumber = in.readInt();
+        languageModifiedBy = in.readString();
         slug = in.readString();
         languageVersionUrl = in.readString();
+        modifiedBy = in.readString();
         languageEndsOn = in.readString();
         title = in.readString();
         items = in.createStringArrayList();
         self = in.readString();
         created = in.readString();
         modified = in.readString();
+        createdBy = in.readString();
+        tagUrls = in.createStringArrayList();
         endsOn = in.readString();
         synopsis = in.readString();
         versionUrl = in.readString();
+        parentUrl = in.readString();
         languageModified = in.readString();
         imageDetails = in.readParcelable(ImageDetails.class.getClassLoader());
     }
@@ -137,7 +149,7 @@ public class Episode implements Parcelable {
         }
     };
 
-    public Object getSubtitle() {
+    public String getSubtitle() {
         return subtitle;
     }
 
@@ -157,7 +169,7 @@ public class Episode implements Parcelable {
         return publishOn;
     }
 
-    public List<Object> getTalentUrls() {
+    public List<String> getTalentUrls() {
         return talentUrls;
     }
 
@@ -165,7 +177,7 @@ public class Episode implements Parcelable {
         return scheduleUrl;
     }
 
-    public List<Object> getPlanUrls() {
+    public List<String> getPlanUrls() {
         return planUrls;
     }
 
@@ -173,11 +185,11 @@ public class Episode implements Parcelable {
         return languagePublishOn;
     }
 
-    public Object getEpisodeNumber() {
+    public int getEpisodeNumber() {
         return episodeNumber;
     }
 
-    public Object getLanguageModifiedBy() {
+    public String getLanguageModifiedBy() {
         return languageModifiedBy;
     }
 
@@ -193,7 +205,7 @@ public class Episode implements Parcelable {
         return versionNumber;
     }
 
-    public Object getModifiedBy() {
+    public String getModifiedBy() {
         return modifiedBy;
     }
 
@@ -221,11 +233,11 @@ public class Episode implements Parcelable {
         return modified;
     }
 
-    public Object getCreatedBy() {
+    public String getCreatedBy() {
         return createdBy;
     }
 
-    public List<Object> getTagUrls() {
+    public List<String> getTagUrls() {
         return tagUrls;
     }
 
@@ -241,7 +253,7 @@ public class Episode implements Parcelable {
         return versionUrl;
     }
 
-    public Object getParentUrl() {
+    public String getParentUrl() {
         return parentUrl;
     }
 
@@ -252,6 +264,7 @@ public class Episode implements Parcelable {
     public String getLanguageModified() {
         return languageModified;
     }
+
 
     public boolean asImageUrls() {
         return imageUrls != null && imageUrls.size() > 0;
@@ -267,6 +280,18 @@ public class Episode implements Parcelable {
         return imageDetails;
     }
 
+    public String getEndsOnFormated() {
+        SimpleDateFormat dateFormatIn = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZZZZZ");
+        SimpleDateFormat dateFormatOut = new SimpleDateFormat("dd MMM yyyy 'at' HH:mm:ss");
+
+        try {
+            Date date = dateFormatIn.parse(this.endsOn);
+            return dateFormatOut.format(date);
+        } catch (ParseException e) {
+            return "";
+        }
+    }
+
     public void setImageDetails(ImageDetails imageDetails) {
         this.imageDetails = imageDetails;
     }
@@ -278,23 +303,32 @@ public class Episode implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(subtitle);
         dest.writeString(uid);
         dest.writeStringList(scheduleUrls);
         dest.writeStringList(imageUrls);
         dest.writeString(publishOn);
+        dest.writeStringList(talentUrls);
         dest.writeString(scheduleUrl);
+        dest.writeStringList(planUrls);
         dest.writeString(languagePublishOn);
+        dest.writeInt(episodeNumber);
+        dest.writeString(languageModifiedBy);
         dest.writeString(slug);
         dest.writeString(languageVersionUrl);
+        dest.writeString(modifiedBy);
         dest.writeString(languageEndsOn);
         dest.writeString(title);
         dest.writeStringList(items);
         dest.writeString(self);
         dest.writeString(created);
         dest.writeString(modified);
+        dest.writeString(createdBy);
+        dest.writeStringList(tagUrls);
         dest.writeString(endsOn);
         dest.writeString(synopsis);
         dest.writeString(versionUrl);
+        dest.writeString(parentUrl);
         dest.writeString(languageModified);
         dest.writeParcelable(imageDetails, flags);
     }

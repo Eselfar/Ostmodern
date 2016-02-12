@@ -2,10 +2,12 @@ package boulier.remi.ostmodern;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 
 import com.google.gson.reflect.TypeToken;
 
@@ -23,6 +25,7 @@ import retrofit.converter.GsonConverter;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+import rx.subscriptions.CompositeSubscription;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,10 +33,12 @@ public class MainActivity extends AppCompatActivity {
 
     private SetRecyclerViewAdapter mAdapter;
     private RetrofitService mService;
+    private CompositeSubscription mSubscriptions = new CompositeSubscription();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("MainActivity", "onCreate");
         setContentView(R.layout.activity_main);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.sets_recycler_view);
@@ -60,31 +65,53 @@ public class MainActivity extends AppCompatActivity {
         }.getType();
         GsonConverter gsonConverter = RetrofitServiceFactory.getGsonConverter(collectionType, new SetDeserializer());
         mService = RetrofitServiceFactory.createRetrofitService(RetrofitService.class, RetrofitService.SERVICE_ENDPOINT, gsonConverter);
+
+        getSets();
+    }
+
+    private void getSets() {
+        mSubscriptions.add(
+                mService.getSets()
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Subscriber<ArrayList<Set>>() {
+                            @Override
+                            public final void onCompleted() {
+                                // do nothing
+                            }
+
+                            @Override
+                            public final void onError(Throwable e) {
+                                Log.e("MainActivity", e.getMessage());
+                                displaySnackBar();
+                            }
+
+                            @Override
+                            public final void onNext(ArrayList<Set> response) {
+                                Log.d("MainActivity", "onNext");
+                                mAdapter.setList(createAdapterList(response));
+                            }
+                        })
+        );
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        mService.getSets()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<ArrayList<Set>>() {
-                    @Override
-                    public final void onCompleted() {
-                        // do nothing
-                    }
+    protected void onDestroy() {
+        mSubscriptions.unsubscribe();
+        super.onDestroy();
+    }
 
+    private void displaySnackBar() {
+        Snackbar snackbar = Snackbar
+                .make(findViewById(android.R.id.content), R.string.error_loading, Snackbar.LENGTH_LONG)
+                .setAction(R.string.retry, new View.OnClickListener() {
                     @Override
-                    public final void onError(Throwable e) {
-                        Log.e("MainActivity", e.getMessage());
-                    }
-
-                    @Override
-                    public final void onNext(ArrayList<Set> response) {
-                        Log.d("MainActivity", "onNext");
-                        mAdapter.setList(createAdapterList(response));
+                    public void onClick(View view) {
+                        MainActivity.this.getSets();
                     }
                 });
+
+        snackbar.show();
     }
 
     private List<Object> createAdapterList(List<Set> sets) {
