@@ -143,6 +143,8 @@ public class Set {
     }
 
     public List<Item> getItems() {
+        if (items == null)
+            items = new ArrayList<>();
         return items;
     }
 

@@ -42,6 +42,8 @@ public class Item {
     @Expose
     private String heading;
 
+    private Episode mEpisode = null;
+
     public Object getLinkUrl() {
         return linkUrl;
     }
@@ -74,8 +76,8 @@ public class Item {
         return setUrl;
     }
 
-    public String getContentType() {
-        return contentType;
+    public Type getContentType() {
+        return contentType.compareToIgnoreCase("episode") == 0 ? Type.EPISODE : Type.DIVIDER;
     }
 
     public Long getPosition() {
@@ -86,5 +88,16 @@ public class Item {
         return heading;
     }
 
+    public Episode getEpisode() {
+        return mEpisode;
+    }
 
+    public void setEpisode(Episode episode) {
+        mEpisode = episode;
+    }
+
+    public enum Type {
+        DIVIDER,
+        EPISODE
+    }
 }

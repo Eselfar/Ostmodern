@@ -1,8 +1,6 @@
 package boulier.remi.ostmodern.retrofit;
 
 
-import android.support.annotation.Nullable;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -26,13 +24,17 @@ public class RetrofitServiceFactory {
         return new GsonConverter(gson);
     }
 
+    public static <T> T createRetrofitService(final Class<T> clazz, final String endPoint) {
+        return createRetrofitService(clazz, endPoint, null);
+    }
+
     public static <T> T createRetrofitService(final Class<T> clazz, final String endPoint, GsonConverter gsonConverter) {
         final RestAdapter.Builder restAdapterBuilder = new RestAdapter.Builder()
                 .setEndpoint(endPoint)
                 .setLog(new AndroidLog("retrofit"))
                 .setLogLevel(RestAdapter.LogLevel.FULL);
 
-        if (gsonConverter != null){
+        if (gsonConverter != null) {
             restAdapterBuilder.setConverter(gsonConverter);
         }
 
