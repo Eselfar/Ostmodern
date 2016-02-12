@@ -1,5 +1,7 @@
 package boulier.remi.ostmodern;
 
+import android.content.Context;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,11 +10,14 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import boulier.remi.ostmodern.model.SetSection;
 import boulier.remi.ostmodern.retrofit.Episode;
+import boulier.remi.ostmodern.retrofit.ImageDetails;
 import boulier.remi.ostmodern.retrofit.Item;
 import boulier.remi.ostmodern.retrofit.RetrofitService;
 import boulier.remi.ostmodern.retrofit.RetrofitServiceFactory;
@@ -61,25 +66,33 @@ public class SetRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         final Object listItem = mList.get(position);
 
         if (holder instanceof SetViewHolder) {
-            ((SetViewHolder) holder).title.setText(((SetSection) listItem).getTitle());
-            ((SetViewHolder) holder).summary.setText(((SetSection) listItem).getSummary());
-
+            bindSetViewHolder((SetViewHolder) holder, (SetSection) listItem);
         } else if (holder instanceof EpisodeViewHolder) {
-            final Item item = (Item) listItem;
-            final EpisodeViewHolder episodeViewHolder = (EpisodeViewHolder) holder;
-            episodeViewHolder.episodeImage.setImageResource(R.drawable.no_image_200px);
+            bindEpisodeViewHolder((EpisodeViewHolder) holder, (Item) listItem);
+        } else {
+            ((DividerViewHolder) holder).dividerHeading.setText(((Item) listItem).getHeading());
+        }
+    }
 
-            // if we already have the information on the episode
-            if (item.getEpisode() != null) {
-                episodeViewHolder.episodeTitle.setText(item.getEpisode().getTitle());
-                episodeViewHolder.bind(item.getEpisode(), mListener);
+    private void bindSetViewHolder(final SetViewHolder setViewHolder, final SetSection setSection) {
+        setViewHolder.title.setText(setSection.getTitle());
+        setViewHolder.summary.setText(setSection.getSummary());
+        setViewHolder.image.setImageResource(R.drawable.no_image_200px);
+
+        RetrofitService service = RetrofitServiceFactory.createRetrofitService(RetrofitService.class, RetrofitService.SERVICE_ENDPOINT);
+        if (setSection.asImageUrls()) {
+            if (setSection.getImageDetails() != null) {
+                Context context = setViewHolder.itemView.getContext();
+                Picasso.with(context)
+                        .load(setSection.getImageDetails().getUrl())
+                        .placeholder(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
+                        .error(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
+                        .into(setViewHolder.image);
             } else {
-                // If we don't have the information on the episode, we call the server.
-                RetrofitService service = RetrofitServiceFactory.createRetrofitService(RetrofitService.class, RetrofitService.SERVICE_ENDPOINT);
-                service.getEpisode(item.getContentUrl())
+                service.getImageDetails(setSection.getFirstImageUrl())
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Subscriber<Episode>() {
+                        .subscribe(new Subscriber<ImageDetails>() {
                             @Override
                             public final void onCompleted() {
                                 // do nothing
@@ -91,23 +104,63 @@ public class SetRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
                             }
 
                             @Override
-                            public final void onNext(Episode response) {
+                            public final void onNext(ImageDetails response) {
                                 Log.d("SetRecyclerViewAdapter", "onNext");
-                                item.setEpisode(response);
+                                if (response != null) {
+                                    setSection.setImageDetails(response);
 
-                                episodeViewHolder.episodeTitle.setText(response.getTitle());
-                                episodeViewHolder.bind(response, mListener);
-
-                                if (response.getImageUrls() != null && response.getImageUrls().size() > 0) {
-                                    Log.d("SetRecyclerViewAdapter", response.getImageUrls().get(0));
-                                } else
-                                    Log.d("SetRecyclerViewAdapter", "No image url");
+                                    Context context = setViewHolder.itemView.getContext();
+                                    Picasso.with(context)
+                                            .load(setSection.getImageDetails().getUrl())
+                                            .placeholder(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
+                                            .error(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
+                                            .into(setViewHolder.image);
+                                }
                             }
                         });
             }
+        }
+    }
 
+    private void bindEpisodeViewHolder(final EpisodeViewHolder episodeViewHolder, final Item item) {
+        episodeViewHolder.episodeImage.setImageResource(R.drawable.no_image_200px);
+
+        // if we already have the information on the episode
+        if (item.getEpisode() != null) {
+            episodeViewHolder.episodeTitle.setText(item.getEpisode().getTitle());
+            episodeViewHolder.bind(item.getEpisode(), mListener);
+//                Picasso.with(holder.itemView.getContext()).load(item.getI).into(holder.image);
         } else {
-            ((DividerViewHolder) holder).dividerHeading.setText(((Item) listItem).getHeading());
+            // If we don't have the information on the episode, we call the server.
+            RetrofitService service = RetrofitServiceFactory.createRetrofitService(RetrofitService.class, RetrofitService.SERVICE_ENDPOINT);
+            service.getEpisode(item.getContentUrl())
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Subscriber<Episode>() {
+                        @Override
+                        public final void onCompleted() {
+                            // do nothing
+                        }
+
+                        @Override
+                        public final void onError(Throwable e) {
+                            Log.e("SetRecyclerViewAdapter", e.getMessage());
+                        }
+
+                        @Override
+                        public final void onNext(Episode response) {
+                            Log.d("SetRecyclerViewAdapter", "onNext");
+                            item.setEpisode(response);
+
+                            episodeViewHolder.episodeTitle.setText(response.getTitle());
+                            episodeViewHolder.bind(response, mListener);
+
+                            if (response.getImageUrls() != null && response.getImageUrls().size() > 0) {
+                                Log.d("SetRecyclerViewAdapter", response.getImageUrls().get(0));
+                            } else
+                                Log.d("SetRecyclerViewAdapter", "No image url");
+                        }
+                    });
         }
     }
 
@@ -136,14 +189,18 @@ public class SetRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         }
     }
 
+    /* ViewHolders */
+
     public static class SetViewHolder extends RecyclerView.ViewHolder {
         TextView title;
         TextView summary;
+        ImageView image;
 
         public SetViewHolder(View setView) {
             super(setView);
             title = (TextView) setView.findViewById(R.id.set_title);
             summary = (TextView) setView.findViewById(R.id.set_summary);
+            image = (ImageView) setView.findViewById(R.id.set_image);
         }
     }
 

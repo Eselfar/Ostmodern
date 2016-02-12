@@ -18,4 +18,7 @@ public interface RetrofitService {
 
     @GET("/{content_url}")
     Observable<Episode> getEpisode(@Path(value = "content_url", encode = false) String contentUrl);
+
+    @GET("/{image_url}")
+    Observable<ImageDetails> getImageDetails(@Path(value = "image_url", encode = false) String imageUrl);
 }

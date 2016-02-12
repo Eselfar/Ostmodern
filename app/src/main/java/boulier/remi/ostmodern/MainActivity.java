@@ -28,6 +28,9 @@ public class MainActivity extends AppCompatActivity {
 
     private final static int MAX_EPISODES_IN_LINE = 3;
 
+    private SetRecyclerViewAdapter mAdapter;
+    private RetrofitService mService;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.sets_recycler_view);
         GridLayoutManager gridManager = new GridLayoutManager(this, MAX_EPISODES_IN_LINE);
         recyclerView.setLayoutManager(gridManager);
-        final SetRecyclerViewAdapter adapter = new SetRecyclerViewAdapter(new SetRecyclerViewAdapter.OnItemClickListener() {
+        mAdapter = new SetRecyclerViewAdapter(new SetRecyclerViewAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Episode episode) {
                 Intent intent = new Intent(MainActivity.this, DetailsActivity.class);
@@ -44,22 +47,25 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-        recyclerView.setAdapter(adapter);
+        recyclerView.setAdapter(mAdapter);
 
         gridManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
             public int getSpanSize(int position) {
-                return adapter.getItemViewType(position) == SetRecyclerViewAdapter.TYPE_ITEM_EPISODE ? 1 : MAX_EPISODES_IN_LINE;
+                return mAdapter.getItemViewType(position) == SetRecyclerViewAdapter.TYPE_ITEM_EPISODE ? 1 : MAX_EPISODES_IN_LINE;
             }
         });
-
 
         Type collectionType = new TypeToken<ArrayList<Set>>() {
         }.getType();
         GsonConverter gsonConverter = RetrofitServiceFactory.getGsonConverter(collectionType, new SetDeserializer());
+        mService = RetrofitServiceFactory.createRetrofitService(RetrofitService.class, RetrofitService.SERVICE_ENDPOINT, gsonConverter);
+    }
 
-        RetrofitService service = RetrofitServiceFactory.createRetrofitService(RetrofitService.class, RetrofitService.SERVICE_ENDPOINT, gsonConverter);
-        service.getSets()
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mService.getSets()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<ArrayList<Set>>() {
@@ -76,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public final void onNext(ArrayList<Set> response) {
                         Log.d("MainActivity", "onNext");
-                        adapter.setList(createAdapterList(response));
+                        mAdapter.setList(createAdapterList(response));
                     }
                 });
     }

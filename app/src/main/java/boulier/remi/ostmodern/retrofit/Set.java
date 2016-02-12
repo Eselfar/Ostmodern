@@ -40,7 +40,7 @@ public class Set {
     private Long filmCount;
     @SerializedName("image_urls")
     @Expose
-    private List<Object> imageUrls;
+    private List<String> imageUrls;
     @SerializedName("hierarchy_url")
     @Expose
     private Object hierarchyUrl;
@@ -114,7 +114,7 @@ public class Set {
         return filmCount;
     }
 
-    public List<Object> getImageUrls() {
+    public List<String> getImageUrls() {
         return imageUrls;
     }
 
