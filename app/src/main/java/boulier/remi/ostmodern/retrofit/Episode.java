@@ -12,7 +12,7 @@ import java.util.List;
  * Created by Remi BOULIER on 12/02/2016.
  * email: boulier.r+dev@gmail.com
  */
-public class Episode implements Parcelable{
+public class Episode implements Parcelable {
     @SerializedName("subtitle")
     @Expose
     private Object subtitle;
@@ -101,6 +101,8 @@ public class Episode implements Parcelable{
     @Expose
     private String languageModified;
 
+    private ImageDetails imageDetails = null;
+
     protected Episode(Parcel in) {
         uid = in.readString();
         scheduleUrls = in.createStringArrayList();
@@ -120,6 +122,7 @@ public class Episode implements Parcelable{
         synopsis = in.readString();
         versionUrl = in.readString();
         languageModified = in.readString();
+        imageDetails = in.readParcelable(ImageDetails.class.getClassLoader());
     }
 
     public static final Creator<Episode> CREATOR = new Creator<Episode>() {
@@ -250,6 +253,24 @@ public class Episode implements Parcelable{
         return languageModified;
     }
 
+    public boolean asImageUrls() {
+        return imageUrls != null && imageUrls.size() > 0;
+    }
+
+    public String getFirstImageUrl() {
+        if (asImageUrls())
+            return imageUrls.get(0);
+        return "";
+    }
+
+    public ImageDetails getImageDetails() {
+        return imageDetails;
+    }
+
+    public void setImageDetails(ImageDetails imageDetails) {
+        this.imageDetails = imageDetails;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -275,5 +296,6 @@ public class Episode implements Parcelable{
         dest.writeString(synopsis);
         dest.writeString(versionUrl);
         dest.writeString(languageModified);
+        dest.writeParcelable(imageDetails, flags);
     }
 }

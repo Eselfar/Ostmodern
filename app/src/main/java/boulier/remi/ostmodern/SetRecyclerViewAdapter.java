@@ -3,7 +3,6 @@ package boulier.remi.ostmodern;
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,15 +14,12 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
+import boulier.remi.ostmodern.model.EpisodeWrapper;
+import boulier.remi.ostmodern.model.ItemWrapper;
 import boulier.remi.ostmodern.model.SetSection;
+import boulier.remi.ostmodern.model.SetSectionWrapper;
 import boulier.remi.ostmodern.retrofit.Episode;
-import boulier.remi.ostmodern.retrofit.ImageDetails;
 import boulier.remi.ostmodern.retrofit.Item;
-import boulier.remi.ostmodern.retrofit.RetrofitService;
-import boulier.remi.ostmodern.retrofit.RetrofitServiceFactory;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 /**
  * Created by Remi BOULIER on 11/02/2016.
@@ -31,7 +27,7 @@ import rx.schedulers.Schedulers;
  */
 public class SetRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private ArrayList<Object> mList = new ArrayList<>();
+    private final ArrayList<Object> mList = new ArrayList<>();
     private final OnItemClickListener mListener;
 
     public final static int TYPE_SET = 0;
@@ -79,89 +75,45 @@ public class SetRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
         setViewHolder.summary.setText(setSection.getSummary());
         setViewHolder.image.setImageResource(R.drawable.no_image_200px);
 
-        RetrofitService service = RetrofitServiceFactory.createRetrofitService(RetrofitService.class, RetrofitService.SERVICE_ENDPOINT);
-        if (setSection.asImageUrls()) {
-            if (setSection.getImageDetails() != null) {
+        SetSectionWrapper wrapper = new SetSectionWrapper(setSection);
+        wrapper.getImageUrl(new SetSectionWrapper.OnSetSectionUpdate() {
+            @Override
+            public void onComplete(SetSection setSection) {
                 Context context = setViewHolder.itemView.getContext();
                 Picasso.with(context)
                         .load(setSection.getImageDetails().getUrl())
                         .placeholder(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
                         .error(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
                         .into(setViewHolder.image);
-            } else {
-                service.getImageDetails(setSection.getFirstImageUrl())
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Subscriber<ImageDetails>() {
-                            @Override
-                            public final void onCompleted() {
-                                // do nothing
-                            }
-
-                            @Override
-                            public final void onError(Throwable e) {
-                                Log.e("SetRecyclerViewAdapter", e.getMessage());
-                            }
-
-                            @Override
-                            public final void onNext(ImageDetails response) {
-                                Log.d("SetRecyclerViewAdapter", "onNext");
-                                if (response != null) {
-                                    setSection.setImageDetails(response);
-
-                                    Context context = setViewHolder.itemView.getContext();
-                                    Picasso.with(context)
-                                            .load(setSection.getImageDetails().getUrl())
-                                            .placeholder(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
-                                            .error(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
-                                            .into(setViewHolder.image);
-                                }
-                            }
-                        });
             }
-        }
+        });
     }
 
     private void bindEpisodeViewHolder(final EpisodeViewHolder episodeViewHolder, final Item item) {
-        episodeViewHolder.episodeImage.setImageResource(R.drawable.no_image_200px);
+        episodeViewHolder.title.setText("");
+        episodeViewHolder.image.setImageResource(R.drawable.no_image_200px);
 
-        // if we already have the information on the episode
-        if (item.getEpisode() != null) {
-            episodeViewHolder.episodeTitle.setText(item.getEpisode().getTitle());
-            episodeViewHolder.bind(item.getEpisode(), mListener);
-//                Picasso.with(holder.itemView.getContext()).load(item.getI).into(holder.image);
-        } else {
-            // If we don't have the information on the episode, we call the server.
-            RetrofitService service = RetrofitServiceFactory.createRetrofitService(RetrofitService.class, RetrofitService.SERVICE_ENDPOINT);
-            service.getEpisode(item.getContentUrl())
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Subscriber<Episode>() {
-                        @Override
-                        public final void onCompleted() {
-                            // do nothing
-                        }
+        ItemWrapper wrapper = new ItemWrapper(item);
+        wrapper.getEpisodeInfo(new ItemWrapper.OnEpisodeInfoUpdate() {
+            @Override
+            public void onComplete(Item item) {
+                episodeViewHolder.title.setText(item.getEpisode().getTitle());
+                episodeViewHolder.bind(item.getEpisode(), mListener);
 
-                        @Override
-                        public final void onError(Throwable e) {
-                            Log.e("SetRecyclerViewAdapter", e.getMessage());
-                        }
-
-                        @Override
-                        public final void onNext(Episode response) {
-                            Log.d("SetRecyclerViewAdapter", "onNext");
-                            item.setEpisode(response);
-
-                            episodeViewHolder.episodeTitle.setText(response.getTitle());
-                            episodeViewHolder.bind(response, mListener);
-
-                            if (response.getImageUrls() != null && response.getImageUrls().size() > 0) {
-                                Log.d("SetRecyclerViewAdapter", response.getImageUrls().get(0));
-                            } else
-                                Log.d("SetRecyclerViewAdapter", "No image url");
-                        }
-                    });
-        }
+                EpisodeWrapper episodeWrapper = new EpisodeWrapper(item.getEpisode());
+                episodeWrapper.getImageUrl(new EpisodeWrapper.OnEpisodeUpdate() {
+                    @Override
+                    public void onComplete(Episode episode) {
+                        Context context = episodeViewHolder.itemView.getContext();
+                        Picasso.with(context)
+                                .load(episode.getImageDetails().getUrl())
+                                .placeholder(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
+                                .error(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
+                                .into(episodeViewHolder.image);
+                    }
+                });
+            }
+        });
     }
 
     @Override
@@ -192,9 +144,9 @@ public class SetRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     /* ViewHolders */
 
     public static class SetViewHolder extends RecyclerView.ViewHolder {
-        TextView title;
-        TextView summary;
-        ImageView image;
+        final TextView title;
+        final TextView summary;
+        final ImageView image;
 
         public SetViewHolder(View setView) {
             super(setView);
@@ -205,13 +157,13 @@ public class SetRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     }
 
     public static class EpisodeViewHolder extends RecyclerView.ViewHolder {
-        TextView episodeTitle;
-        ImageView episodeImage;
+        final TextView title;
+        final ImageView image;
 
         public EpisodeViewHolder(View setView) {
             super(setView);
-            episodeTitle = (TextView) setView.findViewById(R.id.episode_title);
-            episodeImage = (ImageView) setView.findViewById(R.id.episode_image);
+            title = (TextView) setView.findViewById(R.id.episode_title);
+            image = (ImageView) setView.findViewById(R.id.episode_image);
         }
 
         public void bind(final Episode episode, final OnItemClickListener listener) {
@@ -225,7 +177,7 @@ public class SetRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     }
 
     public static class DividerViewHolder extends RecyclerView.ViewHolder {
-        TextView dividerHeading;
+        final TextView dividerHeading;
 
         public DividerViewHolder(View setView) {
             super(setView);

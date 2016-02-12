@@ -39,10 +39,8 @@ public class RetrofitServiceFactory {
         }
 
 
-        T service = restAdapterBuilder
+        return restAdapterBuilder
                 .build()
                 .create(clazz);
-
-        return service;
     }
 }

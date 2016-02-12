@@ -1,5 +1,8 @@
 package boulier.remi.ostmodern.retrofit;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -9,71 +12,101 @@ import java.util.List;
  * Created by Remi BOULIER on 12/02/2016.
  * email: boulier.r+dev@gmail.com
  */
-public class ImageDetails {
+public class ImageDetails implements Parcelable{
 
     @SerializedName("uid")
     @Expose
-    public String uid;
+    private String uid;
     @SerializedName("show")
     @Expose
-    public Boolean show;
+    private Boolean show;
     @SerializedName("schedule_urls")
     @Expose
-    public List<String> scheduleUrls;
+    private List<String> scheduleUrls;
     @SerializedName("content_url")
     @Expose
-    public String contentUrl;
+    private String contentUrl;
     @SerializedName("url")
     @Expose
-    public String url;
+    private String url;
     @SerializedName("image_type_url")
     @Expose
-    public String imageTypeUrl;
+    private String imageTypeUrl;
     @SerializedName("upload_image_url")
     @Expose
-    public String uploadImageUrl;
+    private String uploadImageUrl;
     @SerializedName("language_modified_by")
     @Expose
-    public Object languageModifiedBy;
+    private Object languageModifiedBy;
     @SerializedName("language_version_url")
     @Expose
-    public String languageVersionUrl;
+    private String languageVersionUrl;
     @SerializedName("description")
     @Expose
-    public String description;
+    private String description;
     @SerializedName("language_ends_on")
     @Expose
-    public Object languageEndsOn;
+    private Object languageEndsOn;
     @SerializedName("created")
     @Expose
-    public String created;
+    private String created;
     @SerializedName("image_type")
     @Expose
-    public String imageType;
+    private String imageType;
     @SerializedName("self")
     @Expose
-    public String self;
+    private String self;
     @SerializedName("title")
     @Expose
-    public String title;
+    private String title;
     @SerializedName("created_by")
     @Expose
-    public Object createdBy;
+    private Object createdBy;
     @SerializedName("language_publish_on")
     @Expose
-    public String languagePublishOn;
+    private String languagePublishOn;
     @SerializedName("language_version_number")
     @Expose
-    public Long languageVersionNumber;
+    private Long languageVersionNumber;
     @SerializedName("language_modified")
     @Expose
-    public String languageModified;
+    private String languageModified;
     @SerializedName("position")
     @Expose
-    public Long position;
+    private Long position;
     @SerializedName("align")
     @Expose
-    public String align;
+    private String align;
+
+    protected ImageDetails(Parcel in) {
+        uid = in.readString();
+        scheduleUrls = in.createStringArrayList();
+        contentUrl = in.readString();
+        url = in.readString();
+        imageTypeUrl = in.readString();
+        uploadImageUrl = in.readString();
+        languageVersionUrl = in.readString();
+        description = in.readString();
+        created = in.readString();
+        imageType = in.readString();
+        self = in.readString();
+        title = in.readString();
+        languagePublishOn = in.readString();
+        languageModified = in.readString();
+        align = in.readString();
+    }
+
+    public static final Creator<ImageDetails> CREATOR = new Creator<ImageDetails>() {
+        @Override
+        public ImageDetails createFromParcel(Parcel in) {
+            return new ImageDetails(in);
+        }
+
+        @Override
+        public ImageDetails[] newArray(int size) {
+            return new ImageDetails[size];
+        }
+    };
 
     public String getUid() {
         return uid;
@@ -157,5 +190,29 @@ public class ImageDetails {
 
     public String getAlign() {
         return align;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(uid);
+        dest.writeStringList(scheduleUrls);
+        dest.writeString(contentUrl);
+        dest.writeString(url);
+        dest.writeString(imageTypeUrl);
+        dest.writeString(uploadImageUrl);
+        dest.writeString(languageVersionUrl);
+        dest.writeString(description);
+        dest.writeString(created);
+        dest.writeString(imageType);
+        dest.writeString(self);
+        dest.writeString(title);
+        dest.writeString(languagePublishOn);
+        dest.writeString(languageModified);
+        dest.writeString(align);
     }
 }
