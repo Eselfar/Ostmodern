@@ -45,8 +45,8 @@ public class DetailsActivity extends AppCompatActivity {
                 Context context = DetailsActivity.this;
                 Picasso.with(context)
                         .load(episode.getImageDetails().getUrl())
-                        .placeholder(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
-                        .error(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
+                        .placeholder(ContextCompat.getDrawable(context, R.drawable.image_placeholder_200px))
+                        .error(ContextCompat.getDrawable(context, R.drawable.image_placeholder_200px))
                         .into(imageView);
             }
         });

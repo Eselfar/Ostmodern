@@ -73,7 +73,7 @@ public class SetRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
     private void bindSetViewHolder(final SetViewHolder setViewHolder, final SetSection setSection) {
         setViewHolder.title.setText(setSection.getTitle());
         setViewHolder.summary.setText(setSection.getSummary());
-        setViewHolder.image.setImageResource(R.drawable.no_image_200px);
+        setViewHolder.image.setImageResource(R.drawable.image_placeholder_200px);
 
         SetSectionWrapper wrapper = new SetSectionWrapper(setSection);
         wrapper.getImageUrl(new SetSectionWrapper.OnSetSectionUpdate() {
@@ -82,8 +82,8 @@ public class SetRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
                 Context context = setViewHolder.itemView.getContext();
                 Picasso.with(context)
                         .load(setSection.getImageDetails().getUrl())
-                        .placeholder(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
-                        .error(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
+                        .placeholder(ContextCompat.getDrawable(context, R.drawable.image_placeholder_200px))
+                        .error(ContextCompat.getDrawable(context, R.drawable.image_placeholder_200px))
                         .into(setViewHolder.image);
             }
         });
@@ -91,7 +91,7 @@ public class SetRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
 
     private void bindEpisodeViewHolder(final EpisodeViewHolder episodeViewHolder, final Item item) {
         episodeViewHolder.title.setText("");
-        episodeViewHolder.image.setImageResource(R.drawable.no_image_200px);
+        episodeViewHolder.image.setImageResource(R.drawable.image_placeholder_200px);
 
         ItemWrapper wrapper = new ItemWrapper(item);
         wrapper.getEpisodeInfo(new ItemWrapper.OnEpisodeInfoUpdate() {
@@ -107,8 +107,8 @@ public class SetRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vi
                         Context context = episodeViewHolder.itemView.getContext();
                         Picasso.with(context)
                                 .load(episode.getImageDetails().getUrl())
-                                .placeholder(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
-                                .error(ContextCompat.getDrawable(context, R.drawable.no_image_200px))
+                                .placeholder(ContextCompat.getDrawable(context, R.drawable.image_placeholder_200px))
+                                .error(ContextCompat.getDrawable(context, R.drawable.image_placeholder_200px))
                                 .into(episodeViewHolder.image);
                     }
                 });

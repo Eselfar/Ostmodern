@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/set_separator"
         android:adjustViewBounds="true"
-        android:src="@drawable/no_image_200px"/>
+        android:src="@drawable/image_placeholder_200px"/>
 
     <TextView
         android:id="@+id/set_title"
